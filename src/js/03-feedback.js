@@ -1,37 +1,44 @@
 import throttle from 'lodash.throttle';
 
-const LOCAL_KEY = 'feedback-form-state';
+const refs = {
+  form: document.querySelector('.feedback-form'),
+  email: document.querySelector('input'),
+  message: document.querySelector('textarea'),
+};
 
-const form = document.querySelector('.feedback-form');
+refs.form.addEventListener('submit', onFormSubmit);
+refs.form.addEventListener('input', throttle(onFormInput, 500));
 
-form.addEventListener('input', throttle(onInputData, 500));
-form.addEventListener('submit', onFormSubmit);
+const STORAGE_KEY = 'feedback-form-state';
+let formData = {
+email: '',
+message: '',
+};
 
-let dataForm = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {};
-const { email, message } = form.elements;
-reloadPage();
-
-function onInputData(e) {
-  dataForm = { email: email.value, message: message.value };
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(dataForm));
-}
-
-function reloadPage() {
-  if (dataForm) {
-    email.value = dataForm.email || '';
-    message.value = dataForm.message || '';
-  }
-}
+processingTheForm();
 
 function onFormSubmit(e) {
   e.preventDefault();
-  console.log({ email: email.value, message: message.value });
-
-  if (email.value === '' || message.value === '') {
-    return alert('Please fill in all the fields!');
-  }
-
-  localStorage.removeItem(LOCAL_KEY);
+localStorage.removeItem(STORAGE_KEY);
+  formData.email = refs.email.value;
+  formData.message = refs.message.value;
   e.currentTarget.reset();
-  dataForm = {};
 }
+
+function onFormInput(e) {
+  formData[e.target.name] = e.target.value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+}
+
+function processingTheForm() {
+    const formValues = localStorage.getItem(STORAGE_KEY);
+    const objectValues = JSON.parse(formValues);
+
+    if (objectValues) {
+        formData = objectValues;
+        refs.email.value = objectValues.email || '';
+        refs.message.value = objectValues.message || '';
+        formData = objectValues.email || '';
+        formData = objectValues.message || '';
+    }
+}    
